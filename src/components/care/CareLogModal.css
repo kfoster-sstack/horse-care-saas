@@ -1,0 +1,203 @@
+.care-log-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.care-log-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.care-log-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.care-log-form .form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #1a1a2e);
+}
+
+.care-log-form .form-label .required {
+  color: var(--color-danger, #dc3545);
+  margin-left: 2px;
+}
+
+.care-log-form .form-input,
+.care-log-form .form-select,
+.care-log-form .form-textarea {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: var(--color-text-primary, #1a1a2e);
+  background: var(--color-surface, #ffffff);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.care-log-form .form-input:focus,
+.care-log-form .form-select:focus,
+.care-log-form .form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary, #8B0000);
+  box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
+}
+
+.care-log-form .form-input--error {
+  border-color: var(--color-danger, #dc3545);
+}
+
+.care-log-form .form-error {
+  font-size: 0.75rem;
+  color: var(--color-danger, #dc3545);
+}
+
+.care-log-form .form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.care-log-form .form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2rem;
+  cursor: pointer;
+}
+
+/* Care type chip grid */
+.care-type-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.care-type-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border: 1.5px solid var(--color-border, #d1d5db);
+  border-radius: 20px;
+  background: var(--color-surface, #ffffff);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text-secondary, #4b5563);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.care-type-chip:hover {
+  border-color: var(--chip-color, #8B0000);
+  background: color-mix(in srgb, var(--chip-color, #8B0000) 8%, transparent);
+}
+
+.care-type-chip--active {
+  border-color: var(--chip-color, #8B0000);
+  background: color-mix(in srgb, var(--chip-color, #8B0000) 12%, transparent);
+  color: var(--chip-color, #8B0000);
+  font-weight: 600;
+}
+
+.care-type-chip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Logged by info */
+.care-log-form__logged-by {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--color-surface-alt, #f9fafb);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+}
+
+.care-log-form__logged-by-label {
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.care-log-form__logged-by-name {
+  color: var(--color-text-primary, #1a1a2e);
+  font-weight: 600;
+}
+
+.care-log-form__type-badge {
+  margin-left: auto;
+  padding: 0.25rem 0.625rem;
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.care-log-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+  margin-top: 0.5rem;
+}
+
+.care-log-form .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.care-log-form .btn:active {
+  transform: scale(0.98);
+}
+
+.care-log-form .btn--primary {
+  background-color: var(--color-primary, #8B0000);
+  color: #ffffff;
+}
+
+.care-log-form .btn--primary:hover {
+  background-color: var(--color-primary-dark, #6d0000);
+}
+
+.care-log-form .btn--secondary {
+  background-color: var(--color-surface-alt, #f3f4f6);
+  color: var(--color-text-secondary, #4b5563);
+}
+
+.care-log-form .btn--secondary:hover {
+  background-color: var(--color-border, #e5e7eb);
+}
+
+@media (max-width: 640px) {
+  .care-log-form .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .care-log-form .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .care-log-form .form-actions .btn {
+    width: 100%;
+  }
+}

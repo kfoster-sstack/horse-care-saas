@@ -1,0 +1,100 @@
+.edit-horse-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.edit-horse-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.edit-horse-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.edit-horse-form .form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #1a1a2e);
+}
+
+.edit-horse-form .form-label .required {
+  color: var(--color-danger, #dc3545);
+  margin-left: 2px;
+}
+
+.edit-horse-form .form-input,
+.edit-horse-form .form-select,
+.edit-horse-form .form-textarea {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: var(--color-text-primary, #1a1a2e);
+  background: var(--color-surface, #ffffff);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.edit-horse-form .form-input:focus,
+.edit-horse-form .form-select:focus,
+.edit-horse-form .form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary, #8B0000);
+  box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
+}
+
+.edit-horse-form .form-input--error {
+  border-color: var(--color-danger, #dc3545);
+}
+
+.edit-horse-form .form-input--error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+}
+
+.edit-horse-form .form-error {
+  font-size: 0.75rem;
+  color: var(--color-danger, #dc3545);
+}
+
+.edit-horse-form .form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.edit-horse-form .form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2rem;
+  cursor: pointer;
+}
+
+.edit-horse-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .edit-horse-form .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .edit-horse-form .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .edit-horse-form .form-actions .btn {
+    width: 100%;
+  }
+}

@@ -1,0 +1,155 @@
+.add-event-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.add-event-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.add-event-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.add-event-form .form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #1a1a2e);
+}
+
+.add-event-form .form-label .required {
+  color: var(--color-danger, #dc3545);
+  margin-left: 2px;
+}
+
+.add-event-form .form-input,
+.add-event-form .form-select,
+.add-event-form .form-textarea {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: var(--color-text-primary, #1a1a2e);
+  background: var(--color-surface, #ffffff);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.add-event-form .form-input:focus,
+.add-event-form .form-select:focus,
+.add-event-form .form-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary, #8B0000);
+  box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.1);
+}
+
+.add-event-form .form-input--error {
+  border-color: var(--color-danger, #dc3545);
+}
+
+.add-event-form .form-error {
+  font-size: 0.75rem;
+  color: var(--color-danger, #dc3545);
+}
+
+.add-event-form .form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.add-event-form .form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2rem;
+  cursor: pointer;
+}
+
+/* Checkbox */
+.form-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.form-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary, #8B0000);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.form-checkbox-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary, #1a1a2e);
+}
+
+/* Form actions */
+.add-event-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+  margin-top: 0.5rem;
+}
+
+.add-event-form .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.add-event-form .btn:active {
+  transform: scale(0.98);
+}
+
+.add-event-form .btn--primary {
+  background-color: var(--color-primary, #8B0000);
+  color: #ffffff;
+}
+
+.add-event-form .btn--primary:hover {
+  background-color: var(--color-primary-dark, #6d0000);
+}
+
+.add-event-form .btn--secondary {
+  background-color: var(--color-surface-alt, #f3f4f6);
+  color: var(--color-text-secondary, #4b5563);
+}
+
+.add-event-form .btn--secondary:hover {
+  background-color: var(--color-border, #e5e7eb);
+}
+
+@media (max-width: 640px) {
+  .add-event-form .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .add-event-form .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .add-event-form .form-actions .btn {
+    width: 100%;
+  }
+}
