@@ -65,7 +65,7 @@ export default function ForgotPasswordPage() {
     <div className="forgot-page">
       <div className="forgot-card">
         <div className="forgot-card__logo">
-          <img src="/schneiders_logo.png" alt="Schneiders" />
+          <img src={`${import.meta.env.BASE_URL}schneiders_logo.png`} alt="Schneiders" />
         </div>
         <h1 className="forgot-card__title">Reset Password</h1>
         <p className="forgot-card__subtitle">

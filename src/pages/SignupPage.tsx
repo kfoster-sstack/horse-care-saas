@@ -97,7 +97,7 @@ export default function SignupPage() {
     <div className="signup-page">
       <div className="signup-card">
         <div className="signup-card__logo">
-          <img src="/schneiders_logo.png" alt="Schneiders" />
+          <img src={`${import.meta.env.BASE_URL}schneiders_logo.png`} alt="Schneiders" />
         </div>
         <h1 className="signup-card__title">Create Account</h1>
         <p className="signup-card__subtitle">Start managing your horse care today</p>

@@ -93,7 +93,7 @@ export default function LoginPage() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-card__logo">
-          <img src="/schneiders_logo.png" alt="Schneiders" />
+          <img src={`${import.meta.env.BASE_URL}schneiders_logo.png`} alt="Schneiders" />
         </div>
         <h1 className="auth-card__title">Horse Care Tracker</h1>
         <p className="auth-card__subtitle">Sign in to manage your horses</p>

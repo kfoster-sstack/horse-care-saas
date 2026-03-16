@@ -69,7 +69,7 @@ export function AppHeader({ isMobile }: AppHeaderProps) {
       <header className="app-header">
         <div className="app-header__mobile-logo">
           <img
-            src="/schneiders_logo.png"
+            src={`${import.meta.env.BASE_URL}schneiders_logo.png`}
             alt="Schneider Saddlery"
           />
           <span className="app-header__title">{getPageTitle()}</span>
