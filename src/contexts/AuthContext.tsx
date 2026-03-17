@@ -114,8 +114,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Initialize auth state
   useEffect(() => {
+    let didTimeout = false;
+
+    // Safety timeout — if Supabase is unreachable, stop the spinner
+    const timeout = setTimeout(() => {
+      didTimeout = true;
+      setState((prev) => {
+        if (!prev.initialized) {
+          console.warn('Auth initialization timed out — Supabase may be unreachable.');
+          return { ...prev, loading: false, initialized: true };
+        }
+        return prev;
+      });
+    }, 8000);
+
     // Get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (didTimeout) return;
+      clearTimeout(timeout);
+
       if (session?.user) {
         const profile = await fetchProfile(session.user.id);
         const { business, membership } = await fetchActiveBusiness(session.user.id);
@@ -135,6 +152,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
           loading: false,
           initialized: true,
         }));
+      }
+    }).catch(() => {
+      if (!didTimeout) {
+        clearTimeout(timeout);
+        console.warn('Auth initialization failed — could not reach Supabase.');
+        setState((prev) => ({ ...prev, loading: false, initialized: true }));
       }
     });
 
@@ -179,6 +202,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     );
 
     return () => {
+      clearTimeout(timeout);
       subscription.unsubscribe();
     };
   }, []);
