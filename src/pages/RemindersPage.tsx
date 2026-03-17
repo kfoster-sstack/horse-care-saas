@@ -19,8 +19,29 @@ import {
 } from 'lucide-react';
 import { useAppStore } from '../store';
 import { useTranslation } from '../i18n';
-import type { Reminder, ReminderType } from '../types';
+import type { Reminder, ReminderType, RepeatInterval } from '../types';
 import './RemindersPage.css';
+
+const REPEAT_OPTIONS: { value: RepeatInterval; label: string }[] = [
+  { value: 'never', label: 'One-off (no repeat)' },
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'biweekly', label: 'Bi-weekly' },
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'quarterly', label: 'Quarterly' },
+  { value: 'biannually', label: 'Bi-annually' },
+  { value: 'yearly', label: 'Yearly' },
+];
+
+const ROLE_ASSIGNMENTS: { value: string; label: string }[] = [
+  { value: '', label: 'Unassigned' },
+  { value: 'all_staff', label: 'All Staff' },
+  { value: 'role:trainer', label: 'All Trainers' },
+  { value: 'role:rider', label: 'All Riders' },
+  { value: 'role:stable_hand', label: 'All Stable Hands' },
+  { value: 'role:farrier', label: 'All Farriers' },
+  { value: 'role:vet', label: 'All Vets' },
+];
 
 type TabFilter = 'all' | 'active' | 'completed' | 'overdue';
 type SortBy = 'dueDate' | 'priority';
@@ -100,6 +121,7 @@ export function RemindersPage() {
   const [newHorseId, setNewHorseId] = useState('');
   const [newDueDate, setNewDueDate] = useState('');
   const [newPriority, setNewPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [newRepeat, setNewRepeat] = useState<RepeatInterval>('never');
   const [newNotes, setNewNotes] = useState('');
   const [newAssignedTo, setNewAssignedTo] = useState('');
   const [formError, setFormError] = useState('');
@@ -112,6 +134,11 @@ export function RemindersPage() {
 
   const getAssigneeName = (assignedTo: string | undefined): string | null => {
     if (!assignedTo) return null;
+    if (assignedTo === 'all_staff') return 'All Staff';
+    if (assignedTo.startsWith('role:')) {
+      const role = assignedTo.replace('role:', '');
+      return `All ${role.charAt(0).toUpperCase() + role.slice(1).replace('_', ' ')}s`;
+    }
     const member = teamMembers.find((m) => m.id === assignedTo);
     return member?.name || null;
   };
@@ -192,7 +219,7 @@ export function RemindersPage() {
       type: newType,
       dueDate: newDueDate,
       priority: newPriority,
-      repeat: 'never',
+      repeat: newRepeat,
       leadReminder: '1day',
       notes: newNotes.trim() || undefined,
       completed: false,
@@ -208,6 +235,7 @@ export function RemindersPage() {
     setNewHorseId('');
     setNewDueDate('');
     setNewPriority('medium');
+    setNewRepeat('never');
     setNewNotes('');
     setNewAssignedTo('');
     setShowAddForm(false);
@@ -440,6 +468,14 @@ export function RemindersPage() {
                       {overdue && <AlertTriangle size={14} />}
                       {formatDueDate(reminder.dueDate)}
                     </span>
+                    {reminder.repeat && reminder.repeat !== 'never' && (
+                      <>
+                        <span className="reminder-card__separator">|</span>
+                        <span className="reminder-card__repeat">
+                          Repeats {reminder.repeat}
+                        </span>
+                      </>
+                    )}
                     {assigneeName && (
                       <>
                         <span className="reminder-card__separator">|</span>
@@ -561,7 +597,21 @@ export function RemindersPage() {
                 </div>
               </div>
 
-              {teamMembers.length > 0 && (
+              <div className="reminders-form__row">
+                <div className="reminders-form__field">
+                  <label htmlFor="reminder-repeat">Repeat</label>
+                  <select
+                    id="reminder-repeat"
+                    className="reminders-form__select"
+                    value={newRepeat}
+                    onChange={(e) => setNewRepeat(e.target.value as RepeatInterval)}
+                  >
+                    {REPEAT_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="reminders-form__field">
                   <label htmlFor="reminder-assign">Assign To</label>
                   <select
@@ -570,7 +620,9 @@ export function RemindersPage() {
                     value={newAssignedTo}
                     onChange={(e) => setNewAssignedTo(e.target.value)}
                   >
-                    <option value="">Unassigned</option>
+                    {ROLE_ASSIGNMENTS.map((r) => (
+                      <option key={r.value} value={r.value}>{r.label}</option>
+                    ))}
                     {teamMembers
                       .filter((m) => m.status === 'active')
                       .map((member) => (
@@ -580,7 +632,7 @@ export function RemindersPage() {
                       ))}
                   </select>
                 </div>
-              )}
+              </div>
 
               <div className="reminders-form__field">
                 <label htmlFor="reminder-notes">Notes</label>

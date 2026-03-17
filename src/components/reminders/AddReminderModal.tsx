@@ -275,28 +275,32 @@ export function AddReminderModal({ isOpen, onClose, preselectedHorseId }: AddRem
           </div>
         </div>
 
-        {isTeamPlan && teamMembers.length > 0 && (
-          <div className="form-group">
-            <label htmlFor="reminder-assign" className="form-label">
-              Assign To
-            </label>
-            <select
-              id="reminder-assign"
-              className="form-select"
-              value={assignedTo}
-              onChange={(e) => setAssignedTo(e.target.value)}
-            >
-              <option value="">Unassigned</option>
-              {teamMembers
-                .filter((m) => m.status === 'active')
-                .map((member) => (
-                  <option key={member.id} value={member.id}>
-                    {member.name}
-                  </option>
-                ))}
-            </select>
-          </div>
-        )}
+        <div className="form-group">
+          <label htmlFor="reminder-assign" className="form-label">
+            Assign To
+          </label>
+          <select
+            id="reminder-assign"
+            className="form-select"
+            value={assignedTo}
+            onChange={(e) => setAssignedTo(e.target.value)}
+          >
+            <option value="">Unassigned</option>
+            <option value="all_staff">All Staff</option>
+            <option value="role:trainer">All Trainers</option>
+            <option value="role:rider">All Riders</option>
+            <option value="role:stable_hand">All Stable Hands</option>
+            <option value="role:farrier">All Farriers</option>
+            <option value="role:vet">All Vets</option>
+            {teamMembers
+              .filter((m) => m.status === 'active')
+              .map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.name}
+                </option>
+              ))}
+          </select>
+        </div>
 
         <div className="form-group">
           <label htmlFor="reminder-notes" className="form-label">

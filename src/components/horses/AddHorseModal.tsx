@@ -1,7 +1,9 @@
-import { useState, FormEvent } from 'react';
+import { useState, useRef, FormEvent } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Modal } from '../ui/Modal';
 import { useAppStore } from '../../store';
+import { useAuth } from '../../contexts/AuthContext';
+import { storageService } from '../../services/storageService';
 import type { Horse } from '../../types';
 import './AddHorseModal.css';
 
@@ -12,6 +14,8 @@ interface AddHorseModalProps {
 
 export function AddHorseModal({ isOpen, onClose }: AddHorseModalProps) {
   const addHorse = useAppStore((state) => state.addHorse);
+  const businessId = useAppStore((state) => state.businessId);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState('');
   const [breed, setBreed] = useState('');
@@ -20,8 +24,27 @@ export function AddHorseModal({ isOpen, onClose }: AddHorseModalProps) {
   const [birthDate, setBirthDate] = useState('');
   const [stallLocation, setStallLocation] = useState('');
   const [photo, setPhoto] = useState('');
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string>('');
   const [notes, setNotes] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors((prev) => ({ ...prev, photo: 'Photo must be under 5MB' }));
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      setErrors((prev) => ({ ...prev, photo: 'File must be an image' }));
+      return;
+    }
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+    setErrors((prev) => { const { photo: _, ...rest } = prev; return rest; });
+  };
 
   const resetForm = () => {
     setName('');
@@ -31,8 +54,11 @@ export function AddHorseModal({ isOpen, onClose }: AddHorseModalProps) {
     setBirthDate('');
     setStallLocation('');
     setPhoto('');
+    setPhotoFile(null);
+    setPhotoPreview('');
     setNotes('');
     setErrors({});
+    setSubmitting(false);
   };
 
   const validate = (): boolean => {
@@ -44,19 +70,33 @@ export function AddHorseModal({ isOpen, onClose }: AddHorseModalProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate() || submitting) return;
+    setSubmitting(true);
+
+    const horseId = uuidv4();
+    let photoUrl = photo.trim() || undefined;
+
+    // Upload photo file if selected
+    if (photoFile && businessId) {
+      const { data, error } = await storageService.uploadHorsePhoto(businessId, horseId, photoFile);
+      if (data) {
+        photoUrl = data.url;
+      } else if (error) {
+        console.error('Photo upload failed:', error);
+      }
+    }
 
     const horse: Horse = {
-      id: uuidv4(),
+      id: horseId,
       name: name.trim(),
       breed: breed.trim(),
       color: color.trim(),
       gender,
       birthDate,
       stallLocation: stallLocation.trim() || undefined,
-      photo: photo.trim() || undefined,
+      photo: photoUrl,
       notes: notes.trim() || undefined,
       feedingSchedule: {
         feedingsPerDay: 2,
@@ -175,17 +215,39 @@ export function AddHorseModal({ isOpen, onClose }: AddHorseModalProps) {
         </div>
 
         <div className="form-group">
-          <label htmlFor="horse-photo" className="form-label">
-            Photo URL
+          <label className="form-label">
+            Photo (optional)
           </label>
-          <input
-            id="horse-photo"
-            type="text"
-            className="form-input"
-            value={photo}
-            onChange={(e) => setPhoto(e.target.value)}
-            placeholder="https://example.com/photo.jpg"
-          />
+          <div className="photo-upload-area">
+            {photoPreview ? (
+              <div className="photo-upload-preview">
+                <img src={photoPreview} alt="Preview" />
+                <button
+                  type="button"
+                  className="photo-upload-remove"
+                  onClick={() => { setPhotoFile(null); setPhotoPreview(''); }}
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="photo-upload-btn"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                Choose Photo (max 5MB)
+              </button>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handlePhotoSelect}
+            />
+            {errors.photo && <span className="form-error">{errors.photo}</span>}
+          </div>
         </div>
 
         <div className="form-group">
@@ -206,8 +268,8 @@ export function AddHorseModal({ isOpen, onClose }: AddHorseModalProps) {
           <button type="button" className="btn btn--secondary" onClick={handleClose}>
             Cancel
           </button>
-          <button type="submit" className="btn btn--primary">
-            Add Horse
+          <button type="submit" className="btn btn--primary" disabled={submitting}>
+            {submitting ? 'Adding...' : 'Add Horse'}
           </button>
         </div>
       </form>

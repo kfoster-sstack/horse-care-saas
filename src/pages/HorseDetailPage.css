@@ -772,3 +772,224 @@
     gap: 8px;
   }
 }
+
+/* ===== Inline Edit Controls ===== */
+
+.horse-detail__section-header-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.horse-detail__section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.horse-detail__edit-inline-btn,
+.horse-detail__add-inline-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  color: #8B0000;
+  background: #fff5f5;
+  border: 1px solid #e0c0c0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.horse-detail__edit-inline-btn:hover,
+.horse-detail__add-inline-btn:hover {
+  background: #ffe0e0;
+}
+
+.horse-detail__edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.horse-detail__save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  color: #fff;
+  background: #2E7D32;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.horse-detail__cancel-btn {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  color: #6b7280;
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.horse-detail__edit-field {
+  margin-bottom: 8px;
+}
+
+.horse-detail__edit-input {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  outline: none;
+}
+
+.horse-detail__edit-input:focus {
+  border-color: #8B0000;
+  box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.1);
+}
+
+.horse-detail__edit-textarea {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.horse-detail__edit-textarea:focus {
+  border-color: #8B0000;
+  box-shadow: 0 0 0 2px rgba(139, 0, 0, 0.1);
+}
+
+.horse-detail__edit-hint {
+  display: block;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+/* ===== Emergency Contact Form ===== */
+
+.horse-detail__contact-form {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.horse-detail__contact-form-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.horse-detail__contact-form-row .horse-detail__edit-input {
+  flex: 1;
+}
+
+.horse-detail__contact-manage {
+  display: flex;
+  gap: 4px;
+  margin-left: 8px;
+}
+
+.horse-detail__contact-edit,
+.horse-detail__contact-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  color: #6b7280;
+  transition: all 0.15s;
+}
+
+.horse-detail__contact-edit:hover {
+  color: #8B0000;
+  border-color: #8B0000;
+}
+
+.horse-detail__contact-delete:hover {
+  color: #c62828;
+  border-color: #c62828;
+  background: #ffebee;
+}
+
+/* ===== Photo Upload ===== */
+
+.photo-upload-area {
+  margin-top: 4px;
+}
+
+.photo-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  color: #374151;
+  background: #f9fafb;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.photo-upload-btn:hover {
+  border-color: #8B0000;
+  background: #fff5f5;
+}
+
+.photo-upload-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.photo-upload-preview img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.photo-upload-remove {
+  font-size: 0.8rem;
+  color: #c62828;
+  background: none;
+  border: 1px solid #e0c0c0;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+/* ===== Form Hint ===== */
+
+.form-hint {
+  display: block;
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+/* ===== Reminder Repeat Badge ===== */
+
+.reminder-card__repeat {
+  font-size: 0.8rem;
+  color: #7B1FA2;
+  font-weight: 500;
+}
