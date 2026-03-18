@@ -105,6 +105,7 @@ export function SettingsPage() {
     activeMembership,
     signOut,
     updateProfile,
+    refreshProfile,
   } = useAuth();
   const { user: storeUser } = useAppStore();
 
@@ -124,6 +125,12 @@ export function SettingsPage() {
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+
+  // Join business
+  const [joinCode, setJoinCode] = useState('');
+  const [joinLoading, setJoinLoading] = useState(false);
+  const [joinError, setJoinError] = useState('');
+  const [joinSuccess, setJoinSuccess] = useState('');
 
   // Business address
   const [editingAddress, setEditingAddress] = useState(false);
@@ -476,9 +483,66 @@ export function SettingsPage() {
               )}
             </>
           ) : (
-            <p className="settings-empty-text">
-              No active business. Complete onboarding to set up or join a business.
-            </p>
+            <div className="settings-join-business">
+              <p className="settings-empty-text" style={{ marginBottom: 12 }}>
+                You are not connected to a business yet. Enter a business code to join one.
+              </p>
+              {joinError && <div className="settings-support-success" style={{ background: '#ffebee', color: '#c62828', marginBottom: 8 }}>{joinError}</div>}
+              {joinSuccess && <div className="settings-support-success" style={{ marginBottom: 8 }}>{joinSuccess}</div>}
+              <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                <input
+                  type="text"
+                  className="settings-support-input"
+                  placeholder="Enter business code (e.g. ABC123)"
+                  value={joinCode}
+                  onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                  maxLength={10}
+                  style={{ flex: 1, marginBottom: 0 }}
+                />
+                <button
+                  className="settings-btn settings-btn--primary"
+                  disabled={joinLoading || !joinCode.trim()}
+                  onClick={async () => {
+                    setJoinLoading(true);
+                    setJoinError('');
+                    setJoinSuccess('');
+                    const userMode = profile?.user_mode || 'staff';
+                    const role = userMode === 'trainer' ? 'staff' : userMode === 'boarder' ? 'boarder' : 'staff';
+                    const { data, error } = await businessService.joinByCode(joinCode.trim(), role as any);
+                    if (error) {
+                      setJoinError(error.message);
+                    } else if (data && !data.success) {
+                      setJoinError(data.error || 'Failed to join business');
+                    } else {
+                      setJoinSuccess(`Joined ${data?.business_name || 'business'} successfully! Refreshing...`);
+                      setJoinCode('');
+                      // Notify business owner that someone joined
+                      if (data?.business_id) {
+                        businessService.getById(data.business_id).then(({ data: biz }) => {
+                          if (biz?.owner_id) {
+                            import('../lib/supabase').then(({ supabase }) => {
+                              supabase.from('direct_messages').insert({
+                                business_id: data.business_id,
+                                sender_id: authUser?.id,
+                                recipient_id: biz.owner_id,
+                                message: `${profile?.name || 'A new user'} (${profile?.email || authUser?.email || 'unknown'}) has joined your business "${data.business_name}" as ${role}.`,
+                              }).then(() => {}, () => {});
+                            });
+                          }
+                        });
+                      }
+                      setTimeout(() => { refreshProfile(); }, 1500);
+                    }
+                    setJoinLoading(false);
+                  }}
+                >
+                  {joinLoading ? 'Joining...' : 'Join'}
+                </button>
+              </div>
+              <span className="settings-field__hint" style={{ marginTop: 4, display: 'block' }}>
+                Ask your barn owner or manager for the business code
+              </span>
+            </div>
           )}
         </div>
       </section>

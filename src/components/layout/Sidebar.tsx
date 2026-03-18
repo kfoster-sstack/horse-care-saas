@@ -13,6 +13,13 @@ import { useAppStore } from '../../store';
 import { useAuth } from '../../contexts/AuthContext';
 import './Sidebar.css';
 
+function formatRole(role: string): string {
+  return role
+    .split('_')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+}
+
 // Custom Horse SVG icon matching the mobile app's TabBar icon
 const HorseIcon = ({ className, size = 20 }: { className?: string; size?: number }) => (
   <svg
@@ -52,12 +59,12 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const location = useLocation();
   const { t } = useTranslation();
   const { getUnreadMessageCount } = useAppStore();
-  const { profile } = useAuth();
+  const { profile, activeMembership } = useAuth();
 
   const unreadCount = getUnreadMessageCount();
 
   const displayName = profile?.name || 'User';
-  const userRole = (profile as any)?.role || profile?.user_mode || 'owner';
+  const userRole = activeMembership?.role || profile?.user_mode || 'member';
   const initials = displayName
     .split(' ')
     .map((n: string) => n[0])
@@ -122,7 +129,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           <div className="sidebar__user-avatar">{initials}</div>
           <div className="sidebar__user-info">
             <div className="sidebar__user-name">{displayName}</div>
-            <div className="sidebar__user-role">{userRole}</div>
+            <div className="sidebar__user-role">{formatRole(userRole)}</div>
           </div>
         </div>
 
