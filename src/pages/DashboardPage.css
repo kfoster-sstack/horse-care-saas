@@ -632,6 +632,10 @@
   color: #37474f;
 }
 
+.dashboard__weather-location {
+  font-weight: 500;
+}
+
 .dashboard__weather-blanket {
   width: 100%;
   padding: 8px 12px;

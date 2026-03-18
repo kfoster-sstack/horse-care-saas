@@ -96,6 +96,10 @@ export interface Database {
           name: string;
           code: string;
           owner_id: string;
+          address_street: string | null;
+          address_city: string | null;
+          address_state: string | null;
+          address_zip: string | null;
           subscription_tier: SubscriptionTier;
           subscription_max_users: number;
           subscription_price: number;
@@ -111,6 +115,10 @@ export interface Database {
           name: string;
           code?: string;
           owner_id: string;
+          address_street?: string | null;
+          address_city?: string | null;
+          address_state?: string | null;
+          address_zip?: string | null;
           subscription_tier?: SubscriptionTier;
           subscription_max_users?: number;
           subscription_price?: number;
@@ -126,6 +134,10 @@ export interface Database {
           name?: string;
           code?: string;
           owner_id?: string;
+          address_street?: string | null;
+          address_city?: string | null;
+          address_state?: string | null;
+          address_zip?: string | null;
           subscription_tier?: SubscriptionTier;
           subscription_max_users?: number;
           subscription_price?: number;

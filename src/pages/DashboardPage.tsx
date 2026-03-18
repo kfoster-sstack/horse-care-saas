@@ -53,7 +53,7 @@ function checkBlanketWeather(temp: number, wind: number, code: number): boolean 
   return false;
 }
 
-function useWeather(): { weather: WeatherData | null; loading: boolean; locationName: string } {
+function useWeather(businessZip?: string | null): { weather: WeatherData | null; loading: boolean; locationName: string } {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [locationName, setLocationName] = useState('');
@@ -61,20 +61,21 @@ function useWeather(): { weather: WeatherData | null; loading: boolean; location
   useEffect(() => {
     let cancelled = false;
 
-    async function fetchWeather(lat: number, lon: number) {
+    async function fetchWeatherByCoords(lat: number, lon: number, name?: string) {
       try {
-        // Reverse geocode for city name
-        const geoRes = await fetch(
+        const res = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph`
         );
-        const geoData = await geoRes.json();
+        const data = await res.json();
 
-        if (cancelled || !geoData.current) return;
+        if (cancelled || !data.current) return;
 
-        const current = geoData.current;
+        const current = data.current;
         const temp = Math.round(current.temperature_2m);
         const wind = Math.round(current.wind_speed_10m);
         const code = current.weather_code;
+
+        if (name) setLocationName(name);
 
         setWeather({
           temperature: temp,
@@ -85,14 +86,6 @@ function useWeather(): { weather: WeatherData | null; loading: boolean; location
           description: getWeatherDescription(code),
           isBlanketWeather: checkBlanketWeather(temp, wind, code),
         });
-
-        // Try to get location name
-        try {
-          const nameRes = await fetch(
-            `https://geocoding-api.open-meteo.com/v1/search?latitude=${lat}&longitude=${lon}&count=1&format=json`
-          );
-          // Fallback: just use coords display
-        } catch { /* ignore */ }
       } catch {
         // Weather fetch failed silently
       } finally {
@@ -100,23 +93,38 @@ function useWeather(): { weather: WeatherData | null; loading: boolean; location
       }
     }
 
-    if (navigator.geolocation) {
+    async function fetchByZip(zip: string) {
+      try {
+        // Use Open-Meteo geocoding to convert zip/city to coords
+        const geoRes = await fetch(
+          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(zip)}&count=1&language=en&format=json`
+        );
+        const geoData = await geoRes.json();
+        if (geoData.results && geoData.results.length > 0) {
+          const loc = geoData.results[0];
+          await fetchWeatherByCoords(loc.latitude, loc.longitude, `${loc.name}, ${loc.admin1 || ''}`);
+          return;
+        }
+      } catch { /* fall through */ }
+      // Fallback to default
+      await fetchWeatherByCoords(41.4993, -81.6944, 'Cleveland, OH');
+    }
+
+    // Priority: business zip > browser geolocation > default
+    if (businessZip && businessZip.trim()) {
+      fetchByZip(businessZip.trim());
+    } else if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => fetchWeather(pos.coords.latitude, pos.coords.longitude),
-        () => {
-          // Default to Cleveland, OH (Schneider Saddlery HQ)
-          fetchWeather(41.4993, -81.6944);
-          setLocationName('Cleveland, OH');
-        },
+        (pos) => fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude),
+        () => fetchWeatherByCoords(41.4993, -81.6944, 'Cleveland, OH'),
         { timeout: 5000 }
       );
     } else {
-      fetchWeather(41.4993, -81.6944);
-      setLocationName('Cleveland, OH');
+      fetchWeatherByCoords(41.4993, -81.6944, 'Cleveland, OH');
     }
 
     return () => { cancelled = true; };
-  }, []);
+  }, [businessZip]);
 
   return { weather, loading, locationName };
 }
@@ -175,7 +183,8 @@ export default function DashboardPage() {
   } = useAppStore();
 
   const [completingId, setCompletingId] = useState<string | null>(null);
-  const { weather, loading: weatherLoading } = useWeather();
+  const businessZip = (activeBusiness as any)?.address_zip || null;
+  const { weather, loading: weatherLoading, locationName } = useWeather(businessZip);
 
   const userName = profile?.name || 'there';
   const isTeamPlan =
@@ -472,6 +481,9 @@ export default function DashboardPage() {
             <div className="dashboard__weather-desc">
               <Cloud size={16} />
               <span>{weather.description}</span>
+              {locationName && (
+                <span className="dashboard__weather-location"> — {locationName}</span>
+              )}
             </div>
           </div>
           <div className="dashboard__weather-details">

@@ -26,6 +26,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../i18n';
 import type { Language } from '../i18n';
 import { useAppStore } from '../store';
+import { businessService } from '../services/businessService';
 import type { LeadTime } from '../types';
 import './SettingsPage.css';
 
@@ -123,6 +124,15 @@ export function SettingsPage() {
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+
+  // Business address
+  const [editingAddress, setEditingAddress] = useState(false);
+  const [addrStreet, setAddrStreet] = useState((activeBusiness as any)?.address_street || '');
+  const [addrCity, setAddrCity] = useState((activeBusiness as any)?.address_city || '');
+  const [addrState, setAddrState] = useState((activeBusiness as any)?.address_state || '');
+  const [addrZip, setAddrZip] = useState((activeBusiness as any)?.address_zip || '');
+  const [addrSaving, setAddrSaving] = useState(false);
+  const [addrSuccess, setAddrSuccess] = useState('');
 
   // Help & Support
   const [supportSubject, setSupportSubject] = useState('');
@@ -348,6 +358,112 @@ export function SettingsPage() {
                     : 'Member'}
                 </span>
               </div>
+
+              {/* Business Address */}
+              {isOwner && (
+                <div className="settings-address">
+                  <div className="settings-field" style={{ marginBottom: 8 }}>
+                    <label className="settings-field__label">Business Address</label>
+                    {!editingAddress ? (
+                      <div>
+                        {addrStreet || addrCity || addrState || addrZip ? (
+                          <span className="settings-field__value">
+                            {[addrStreet, addrCity, addrState, addrZip].filter(Boolean).join(', ')}
+                          </span>
+                        ) : (
+                          <span className="settings-field__value" style={{ color: '#9ca3af' }}>
+                            No address set — add one for accurate weather reports
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="settings-address-form">
+                        <input
+                          type="text"
+                          className="settings-support-input"
+                          placeholder="Street address"
+                          value={addrStreet}
+                          onChange={(e) => setAddrStreet(e.target.value)}
+                        />
+                        <div style={{ display: 'flex', gap: 8 }}>
+                          <input
+                            type="text"
+                            className="settings-support-input"
+                            placeholder="City"
+                            value={addrCity}
+                            onChange={(e) => setAddrCity(e.target.value)}
+                            style={{ flex: 2 }}
+                          />
+                          <input
+                            type="text"
+                            className="settings-support-input"
+                            placeholder="State"
+                            value={addrState}
+                            onChange={(e) => setAddrState(e.target.value)}
+                            style={{ flex: 1 }}
+                            maxLength={2}
+                          />
+                          <input
+                            type="text"
+                            className="settings-support-input"
+                            placeholder="ZIP"
+                            value={addrZip}
+                            onChange={(e) => setAddrZip(e.target.value)}
+                            style={{ flex: 1 }}
+                            maxLength={10}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {addrSuccess && (
+                    <div className="settings-support-success" style={{ marginBottom: 8 }}>{addrSuccess}</div>
+                  )}
+                  {editingAddress ? (
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        className="settings-btn settings-btn--primary"
+                        disabled={addrSaving}
+                        onClick={async () => {
+                          if (!activeBusiness) return;
+                          setAddrSaving(true);
+                          await businessService.update(activeBusiness.id, {
+                            address_street: addrStreet.trim() || null,
+                            address_city: addrCity.trim() || null,
+                            address_state: addrState.trim().toUpperCase() || null,
+                            address_zip: addrZip.trim() || null,
+                          } as any);
+                          setAddrSaving(false);
+                          setEditingAddress(false);
+                          setAddrSuccess('Address saved! Weather will now use this location.');
+                          setTimeout(() => setAddrSuccess(''), 4000);
+                        }}
+                      >
+                        {addrSaving ? 'Saving...' : 'Save Address'}
+                      </button>
+                      <button
+                        className="settings-btn settings-btn--secondary"
+                        onClick={() => {
+                          setEditingAddress(false);
+                          setAddrStreet((activeBusiness as any)?.address_street || '');
+                          setAddrCity((activeBusiness as any)?.address_city || '');
+                          setAddrState((activeBusiness as any)?.address_state || '');
+                          setAddrZip((activeBusiness as any)?.address_zip || '');
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      className="settings-btn settings-btn--secondary"
+                      onClick={() => setEditingAddress(true)}
+                    >
+                      {addrStreet ? 'Edit Address' : 'Add Address'}
+                    </button>
+                  )}
+                </div>
+              )}
 
               {isOwner && (
                 <button
