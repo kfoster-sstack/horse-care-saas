@@ -19,7 +19,7 @@ import { OnboardingPage } from './pages/OnboardingPage';
 import './App.css';
 
 function AppContent() {
-  const { user, activeBusiness, initialized } = useAuth();
+  const { user, activeBusiness, initialized, loading } = useAuth();
   const { setAuthenticated, syncAllData } = useAppStore();
 
   // Sync authentication state with store
@@ -29,10 +29,14 @@ function AppContent() {
     if (user && activeBusiness) {
       setAuthenticated(true, activeBusiness.id);
       syncAllData();
+    } else if (user && !loading) {
+      // User is authenticated but business data hasn't loaded yet or doesn't exist
+      // Still mark as authenticated so the app doesn't reset
+      setAuthenticated(true, activeBusiness?.id);
     } else if (!user) {
       setAuthenticated(false);
     }
-  }, [user, activeBusiness, initialized, setAuthenticated, syncAllData]);
+  }, [user, activeBusiness, initialized, loading, setAuthenticated, syncAllData]);
 
   // Show loading while auth initializes
   if (!initialized) {
