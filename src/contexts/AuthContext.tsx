@@ -173,29 +173,42 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.log('Auth event:', event);
 
         if (session?.user) {
-          // Set user immediately so login redirects right away
+          const isFirstSignIn = event === 'SIGNED_IN';
+
+          // Only show loading spinner on first sign-in, not on token refresh
+          if (isFirstSignIn) {
+            setState((prev) => ({
+              ...prev,
+              session,
+              user: session.user,
+              loading: true,
+              initialized: true,
+            }));
+          } else {
+            // Token refresh — update session silently, keep existing data
+            setState((prev) => ({
+              ...prev,
+              session,
+              user: session.user,
+            }));
+          }
+
+          // Refresh profile/business data in the background
+          const { profile, business, membership } = await loadUserData(session);
+
           setState((prev) => ({
             ...prev,
             session,
             user: session.user,
-            loading: true,
+            profile: profile || prev.profile,
+            activeBusiness: business || prev.activeBusiness,
+            activeMembership: membership || prev.activeMembership,
+            loading: false,
             initialized: true,
           }));
 
-          const { profile, business, membership } = await loadUserData(session);
-
-          setState({
-            session,
-            user: session.user,
-            profile,
-            activeBusiness: business,
-            activeMembership: membership,
-            loading: false,
-            initialized: true,
-          });
-
           // Update last login (fire and forget)
-          if (event === 'SIGNED_IN') {
+          if (isFirstSignIn) {
             supabase
               .from('user_profiles')
               .update({ last_login: new Date().toISOString() })
