@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { format, parseISO, isToday, isPast, addDays } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../store';
@@ -14,8 +14,112 @@ import {
   CheckCircle2,
   Users,
   Activity,
+  Cloud,
+  Thermometer,
+  Wind,
+  Droplets,
 } from 'lucide-react';
 import './DashboardPage.css';
+
+// Weather types
+interface WeatherData {
+  temperature: number;
+  feelsLike: number;
+  humidity: number;
+  windSpeed: number;
+  weatherCode: number;
+  description: string;
+  isBlanketWeather: boolean;
+}
+
+function getWeatherDescription(code: number): string {
+  if (code === 0) return 'Clear sky';
+  if (code <= 3) return 'Partly cloudy';
+  if (code <= 48) return 'Overcast / Fog';
+  if (code <= 57) return 'Drizzle';
+  if (code <= 65) return 'Rain';
+  if (code <= 67) return 'Freezing rain';
+  if (code <= 77) return 'Snow';
+  if (code <= 82) return 'Rain showers';
+  if (code <= 86) return 'Snow showers';
+  if (code <= 99) return 'Thunderstorm';
+  return 'Unknown';
+}
+
+function checkBlanketWeather(temp: number, wind: number, code: number): boolean {
+  // Blanket weather: temp below 50°F, or below 60°F with rain/wind
+  if (temp < 50) return true;
+  if (temp < 60 && (wind > 15 || code >= 51)) return true;
+  return false;
+}
+
+function useWeather(): { weather: WeatherData | null; loading: boolean; locationName: string } {
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [locationName, setLocationName] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function fetchWeather(lat: number, lon: number) {
+      try {
+        // Reverse geocode for city name
+        const geoRes = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph`
+        );
+        const geoData = await geoRes.json();
+
+        if (cancelled || !geoData.current) return;
+
+        const current = geoData.current;
+        const temp = Math.round(current.temperature_2m);
+        const wind = Math.round(current.wind_speed_10m);
+        const code = current.weather_code;
+
+        setWeather({
+          temperature: temp,
+          feelsLike: Math.round(current.apparent_temperature),
+          humidity: Math.round(current.relative_humidity_2m),
+          windSpeed: wind,
+          weatherCode: code,
+          description: getWeatherDescription(code),
+          isBlanketWeather: checkBlanketWeather(temp, wind, code),
+        });
+
+        // Try to get location name
+        try {
+          const nameRes = await fetch(
+            `https://geocoding-api.open-meteo.com/v1/search?latitude=${lat}&longitude=${lon}&count=1&format=json`
+          );
+          // Fallback: just use coords display
+        } catch { /* ignore */ }
+      } catch {
+        // Weather fetch failed silently
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => fetchWeather(pos.coords.latitude, pos.coords.longitude),
+        () => {
+          // Default to Cleveland, OH (Schneider Saddlery HQ)
+          fetchWeather(41.4993, -81.6944);
+          setLocationName('Cleveland, OH');
+        },
+        { timeout: 5000 }
+      );
+    } else {
+      fetchWeather(41.4993, -81.6944);
+      setLocationName('Cleveland, OH');
+    }
+
+    return () => { cancelled = true; };
+  }, []);
+
+  return { weather, loading, locationName };
+}
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -71,6 +175,7 @@ export default function DashboardPage() {
   } = useAppStore();
 
   const [completingId, setCompletingId] = useState<string | null>(null);
+  const { weather, loading: weatherLoading } = useWeather();
 
   const userName = profile?.name || 'there';
   const isTeamPlan =
@@ -355,6 +460,38 @@ export default function DashboardPage() {
         </h1>
         <p className="dashboard__date">{todayFormatted}</p>
       </div>
+
+      {/* Weather Widget */}
+      {weather && (
+        <div className={`dashboard__weather ${weather.isBlanketWeather ? 'dashboard__weather--blanket' : ''}`}>
+          <div className="dashboard__weather-main">
+            <div className="dashboard__weather-temp">
+              <Thermometer size={20} />
+              <span className="dashboard__weather-degrees">{weather.temperature}°F</span>
+            </div>
+            <div className="dashboard__weather-desc">
+              <Cloud size={16} />
+              <span>{weather.description}</span>
+            </div>
+          </div>
+          <div className="dashboard__weather-details">
+            <span className="dashboard__weather-detail">
+              <Thermometer size={14} /> Feels like {weather.feelsLike}°F
+            </span>
+            <span className="dashboard__weather-detail">
+              <Droplets size={14} /> Humidity {weather.humidity}%
+            </span>
+            <span className="dashboard__weather-detail">
+              <Wind size={14} /> Wind {weather.windSpeed} mph
+            </span>
+          </div>
+          {weather.isBlanketWeather && (
+            <div className="dashboard__weather-blanket">
+              Blanket Weather — Consider blanketing your horses
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="dashboard__stats">

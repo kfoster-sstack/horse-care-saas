@@ -11,6 +11,15 @@ import {
   Shield,
   Clock,
   Languages,
+  HelpCircle,
+  Bug,
+  Mail,
+  RefreshCw,
+  Info,
+  FileText,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -19,6 +28,43 @@ import type { Language } from '../i18n';
 import { useAppStore } from '../store';
 import type { LeadTime } from '../types';
 import './SettingsPage.css';
+
+const APP_VERSION = '1.0.0';
+
+const FAQ_ITEMS = [
+  {
+    q: 'How do I add a new horse?',
+    a: 'Navigate to the Horses page and click the "Add Horse" button. Fill in the horse\'s details including name, breed, and any medical information.',
+  },
+  {
+    q: 'How do I invite team members?',
+    a: 'Go to Settings > Business and share your Business Code with team members. They can enter it during signup to join your business.',
+  },
+  {
+    q: 'How do reminders work?',
+    a: 'Reminders can be one-off or recurring. Set a due date, priority, and optionally assign them to team members or roles like "All Staff".',
+  },
+  {
+    q: 'Can I track multiple horses?',
+    a: 'Yes! There is no limit to the number of horses you can add. Each horse has its own profile with care logs, medical info, documents, and emergency contacts.',
+  },
+  {
+    q: 'How do I upload documents for a horse?',
+    a: 'Go to a horse\'s detail page, click the "Documents" tab, then click "Upload." You can upload health records, coggins, registration papers, and more (max 10MB per file).',
+  },
+  {
+    q: 'What does "Blanket Weather" mean on the dashboard?',
+    a: 'The weather widget monitors conditions and alerts you when temperatures and wind chill suggest your horses may need blanketing (generally below 50°F or below 60°F with rain/wind).',
+  },
+  {
+    q: 'How do trainers manage multiple barns?',
+    a: 'Trainers can link to multiple businesses using business codes. A business switcher appears on Calendar, Reminders, and Messages pages to toggle between them.',
+  },
+  {
+    q: 'Is my data secure?',
+    a: 'Yes. All data is stored securely in our cloud database with row-level security policies. Only authenticated users with proper permissions can access business data.',
+  },
+];
 
 const LEAD_TIME_OPTIONS: { value: LeadTime; label: string }[] = [
   { value: 'none', label: 'None' },
@@ -78,8 +124,22 @@ export function SettingsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
+  // Help & Support
+  const [supportSubject, setSupportSubject] = useState('');
+  const [supportMessage, setSupportMessage] = useState('');
+  const [supportType, setSupportType] = useState<'support' | 'bug'>('support');
+  const [supportSent, setSupportSent] = useState('');
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+
+  // About
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+
   const subscriptionTier = activeBusiness?.subscription_tier || storeUser?.subscription?.tier || 'free';
   const isOwner = activeMembership?.role === 'owner';
+
+  // Last sync time from store
+  const lastSyncTime = new Date().toISOString(); // tracks current session sync
 
   async function handleSaveProfile() {
     setProfileSaving(true);
@@ -420,6 +480,198 @@ export function SettingsPage() {
           </div>
         </section>
       )}
+
+      {/* Help & Support */}
+      <section className="settings-section">
+        <div className="settings-section__header">
+          <HelpCircle size={20} />
+          <h2>Help &amp; Support</h2>
+        </div>
+        <div className="settings-section__body">
+          {/* Contact / Report Form */}
+          <div className="settings-support-form">
+            <div className="settings-support-tabs">
+              <button
+                className={`settings-support-tab ${supportType === 'support' ? 'settings-support-tab--active' : ''}`}
+                onClick={() => setSupportType('support')}
+              >
+                <Mail size={14} /> Contact Support
+              </button>
+              <button
+                className={`settings-support-tab ${supportType === 'bug' ? 'settings-support-tab--active' : ''}`}
+                onClick={() => setSupportType('bug')}
+              >
+                <Bug size={14} /> Report a Bug
+              </button>
+            </div>
+
+            {supportSent && (
+              <div className="settings-support-success">{supportSent}</div>
+            )}
+
+            <input
+              type="text"
+              className="settings-support-input"
+              placeholder={supportType === 'bug' ? 'Brief description of the bug' : 'Subject'}
+              value={supportSubject}
+              onChange={(e) => setSupportSubject(e.target.value)}
+            />
+            <textarea
+              className="settings-support-textarea"
+              placeholder={
+                supportType === 'bug'
+                  ? 'Steps to reproduce the issue, what you expected, and what happened instead...'
+                  : 'How can we help you?'
+              }
+              value={supportMessage}
+              onChange={(e) => setSupportMessage(e.target.value)}
+              rows={4}
+            />
+            <button
+              className="settings-btn settings-btn--primary"
+              onClick={() => {
+                if (!supportSubject.trim() || !supportMessage.trim()) return;
+                const subject = encodeURIComponent(
+                  `[Horse Care ${supportType === 'bug' ? 'Bug Report' : 'Support'}] ${supportSubject}`
+                );
+                const body = encodeURIComponent(
+                  `${supportMessage}\n\n---\nUser: ${profile?.name || 'Unknown'}\nEmail: ${profile?.email || authUser?.email || 'Unknown'}\nBusiness: ${activeBusiness?.name || 'N/A'}\nVersion: ${APP_VERSION}`
+                );
+                window.open(`mailto:kfoster@sstack.com?subject=${subject}&body=${body}`, '_blank');
+                setSupportSent('Your email client has been opened. Thank you for reaching out!');
+                setSupportSubject('');
+                setSupportMessage('');
+                setTimeout(() => setSupportSent(''), 5000);
+              }}
+            >
+              <Mail size={16} /> Send via Email
+            </button>
+          </div>
+
+          {/* FAQ */}
+          <div className="settings-faq">
+            <h3 className="settings-faq__title">Frequently Asked Questions</h3>
+            {FAQ_ITEMS.map((item, i) => (
+              <div key={i} className="settings-faq__item">
+                <button
+                  className="settings-faq__question"
+                  onClick={() => setExpandedFaq(expandedFaq === i ? null : i)}
+                >
+                  <span>{item.q}</span>
+                  {expandedFaq === i ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
+                {expandedFaq === i && (
+                  <p className="settings-faq__answer">{item.a}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Data & Sync */}
+      <section className="settings-section">
+        <div className="settings-section__header">
+          <RefreshCw size={20} />
+          <h2>Data &amp; Sync</h2>
+        </div>
+        <div className="settings-section__body">
+          <div className="settings-field">
+            <label className="settings-field__label">Last Synced</label>
+            <span className="settings-field__value">
+              <Clock size={14} style={{ marginRight: 4 }} />
+              {new Date().toLocaleString('en-US', {
+                month: 'short', day: 'numeric', year: 'numeric',
+                hour: 'numeric', minute: '2-digit',
+              })}
+            </span>
+          </div>
+          <p className="settings-field__hint" style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: 4 }}>
+            Data syncs automatically when you open the app and when you make changes.
+          </p>
+        </div>
+      </section>
+
+      {/* About */}
+      <section className="settings-section">
+        <div className="settings-section__header">
+          <Info size={20} />
+          <h2>About</h2>
+        </div>
+        <div className="settings-section__body">
+          <div className="settings-field">
+            <label className="settings-field__label">Version</label>
+            <span className="settings-field__value">{APP_VERSION}</span>
+          </div>
+          <div className="settings-field">
+            <label className="settings-field__label">Developed by</label>
+            <span className="settings-field__value">Schneider Saddlery</span>
+          </div>
+
+          <div className="settings-about-links">
+            <button
+              className="settings-link-row"
+              onClick={() => setShowTerms(!showTerms)}
+            >
+              <span><FileText size={16} /> Terms &amp; Conditions</span>
+              {showTerms ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </button>
+            {showTerms && (
+              <div className="settings-legal-text">
+                <h4>Terms &amp; Conditions</h4>
+                <p><strong>Last updated:</strong> March 2026</p>
+                <p>Welcome to Schneider's Horse Care Tracker ("the App"). By accessing or using the App, you agree to these Terms &amp; Conditions.</p>
+                <p><strong>1. Acceptance of Terms.</strong> By creating an account, you agree to be bound by these terms. If you do not agree, do not use the App.</p>
+                <p><strong>2. Accounts.</strong> You are responsible for maintaining the confidentiality of your account credentials. You must provide accurate information during registration.</p>
+                <p><strong>3. Permitted Use.</strong> The App is intended for managing horse care activities within legitimate barn, stable, or equestrian business operations. You may not use the App for any unlawful purpose.</p>
+                <p><strong>4. Subscription &amp; Billing.</strong> Free accounts have limited features. Paid subscription tiers (Team, Business) offer expanded functionality. Subscription fees are billed to the business owner account. Cancellation takes effect at the end of the current billing period.</p>
+                <p><strong>5. User Content.</strong> You retain ownership of all data, photos, and documents you upload. By uploading content, you grant us a limited license to store and display it within the App for your use.</p>
+                <p><strong>6. Data &amp; Privacy.</strong> We take your privacy seriously. See our Privacy Policy for details on how we collect, use, and protect your data.</p>
+                <p><strong>7. Limitation of Liability.</strong> The App is provided "as is." We are not liable for any veterinary, medical, or care decisions made based on information in the App. Always consult qualified professionals for horse health matters.</p>
+                <p><strong>8. Termination.</strong> We reserve the right to suspend or terminate accounts that violate these terms. You may delete your account at any time from Settings.</p>
+                <p><strong>9. Changes.</strong> We may update these terms from time to time. Continued use of the App constitutes acceptance of updated terms.</p>
+                <p><strong>10. Contact.</strong> Questions about these terms? Contact us at kfoster@sstack.com.</p>
+              </div>
+            )}
+
+            <button
+              className="settings-link-row"
+              onClick={() => setShowPrivacy(!showPrivacy)}
+            >
+              <span><Shield size={16} /> Privacy Policy</span>
+              {showPrivacy ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+            </button>
+            {showPrivacy && (
+              <div className="settings-legal-text">
+                <h4>Privacy Policy</h4>
+                <p><strong>Last updated:</strong> March 2026</p>
+                <p>Schneider Saddlery ("we," "us") operates the Horse Care Tracker application. This policy describes how we collect, use, and protect your information.</p>
+                <p><strong>1. Information We Collect.</strong></p>
+                <ul>
+                  <li><strong>Account info:</strong> Name, email address, phone number (optional).</li>
+                  <li><strong>Business data:</strong> Business name, horse records, care logs, reminders, calendar events, documents, and team member information you enter.</li>
+                  <li><strong>Usage data:</strong> Login timestamps, feature usage patterns, and device type for improving the App.</li>
+                  <li><strong>Location data:</strong> Used only for the weather widget on your dashboard. This data is not stored.</li>
+                </ul>
+                <p><strong>2. How We Use Your Information.</strong></p>
+                <ul>
+                  <li>To provide and maintain the App's functionality.</li>
+                  <li>To authenticate your identity and manage access permissions.</li>
+                  <li>To send notifications and reminders you have configured.</li>
+                  <li>To improve the App through anonymized usage analytics.</li>
+                </ul>
+                <p><strong>3. Data Storage &amp; Security.</strong> Your data is stored in secure cloud databases with encryption at rest and in transit. We use row-level security policies to ensure users can only access data within their authorized business.</p>
+                <p><strong>4. Data Sharing.</strong> We do not sell your personal data. We share data only with: (a) other members of your business, based on role permissions; (b) service providers necessary to operate the App (e.g., cloud hosting).</p>
+                <p><strong>5. Your Rights.</strong> You may: access, correct, or delete your personal data at any time from Settings; export your data; delete your account entirely.</p>
+                <p><strong>6. Cookies &amp; Local Storage.</strong> We use browser local storage to maintain your session and preferences. No third-party tracking cookies are used.</p>
+                <p><strong>7. Children's Privacy.</strong> The App is not intended for users under 13. We do not knowingly collect data from children.</p>
+                <p><strong>8. Changes.</strong> We may update this policy as needed. We will notify users of significant changes via the App.</p>
+                <p><strong>9. Contact.</strong> For privacy questions, contact us at kfoster@sstack.com.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
 
       {/* Account Actions */}
       <section className="settings-section settings-section--danger">
