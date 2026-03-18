@@ -289,13 +289,15 @@ export function SettingsPage() {
                 </span>
               </div>
 
-              <button
-                className="settings-link-row"
-                onClick={() => navigate('/team')}
-              >
-                <span>Team Management</span>
-                <ChevronRight size={18} />
-              </button>
+              {isOwner && (
+                <button
+                  className="settings-link-row"
+                  onClick={() => navigate('/team')}
+                >
+                  <span>Team Management</span>
+                  <ChevronRight size={18} />
+                </button>
+              )}
             </>
           ) : (
             <p className="settings-empty-text">
@@ -375,47 +377,49 @@ export function SettingsPage() {
         </div>
       </section>
 
-      {/* Subscription Section */}
-      <section className="settings-section">
-        <div className="settings-section__header">
-          <CreditCard size={20} />
-          <h2>{t('settings.account.subscription')}</h2>
-        </div>
+      {/* Subscription Section — owner only */}
+      {isOwner && (
+        <section className="settings-section">
+          <div className="settings-section__header">
+            <CreditCard size={20} />
+            <h2>{t('settings.account.subscription')}</h2>
+          </div>
 
-        <div className="settings-section__body">
-          <div className="settings-subscription">
-            <div className="settings-subscription__current">
-              <span className="settings-subscription__tier">
-                {getTierDisplayName(subscriptionTier)}
-              </span>
-              <span className="settings-subscription__price">
-                {getTierPrice(subscriptionTier)}
-              </span>
-            </div>
-
-            {subscriptionTier === 'free' && (
-              <div className="settings-subscription__upgrade">
-                <p>{t('subscription.upgradeMessage')}</p>
-                <button className="settings-btn settings-btn--primary">
-                  {t('subscription.upgrade')} to Team
-                </button>
-              </div>
-            )}
-
-            {subscriptionTier !== 'free' && activeBusiness?.subscription_expires_at && (
-              <div className="settings-subscription__info">
-                <span>
-                  Next billing date:{' '}
-                  {new Date(activeBusiness.subscription_expires_at).toLocaleDateString(
-                    'en-US',
-                    { month: 'long', day: 'numeric', year: 'numeric' }
-                  )}
+          <div className="settings-section__body">
+            <div className="settings-subscription">
+              <div className="settings-subscription__current">
+                <span className="settings-subscription__tier">
+                  {getTierDisplayName(subscriptionTier)}
+                </span>
+                <span className="settings-subscription__price">
+                  {getTierPrice(subscriptionTier)}
                 </span>
               </div>
-            )}
+
+              {subscriptionTier === 'free' && (
+                <div className="settings-subscription__upgrade">
+                  <p>{t('subscription.upgradeMessage')}</p>
+                  <button className="settings-btn settings-btn--primary">
+                    {t('subscription.upgrade')} to Team
+                  </button>
+                </div>
+              )}
+
+              {subscriptionTier !== 'free' && activeBusiness?.subscription_expires_at && (
+                <div className="settings-subscription__info">
+                  <span>
+                    Next billing date:{' '}
+                    {new Date(activeBusiness.subscription_expires_at).toLocaleDateString(
+                      'en-US',
+                      { month: 'long', day: 'numeric', year: 'numeric' }
+                    )}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Account Actions */}
       <section className="settings-section settings-section--danger">

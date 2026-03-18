@@ -1,0 +1,56 @@
+.business-switcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.business-switcher__label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.business-switcher__options {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.business-switcher__btn {
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  border: 1px solid #d1d5db;
+  border-radius: 20px;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.business-switcher__btn:hover {
+  border-color: #8B0000;
+  color: #8B0000;
+}
+
+.business-switcher__btn--active {
+  background: #8B0000;
+  color: #fff;
+  border-color: #8B0000;
+}
+
+.business-switcher__btn--active:hover {
+  background: #6d0000;
+  color: #fff;
+}
+
+.business-switcher__current {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #374151;
+}

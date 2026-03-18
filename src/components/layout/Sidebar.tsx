@@ -89,7 +89,6 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           src={`${import.meta.env.BASE_URL}schneiders_logo.png`}
           alt="Schneider Saddlery"
         />
-        <span className="sidebar__logo-text">Horse Care</span>
       </div>
 
       {/* Navigation */}

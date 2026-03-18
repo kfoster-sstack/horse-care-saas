@@ -28,6 +28,7 @@ import {
   X,
 } from 'lucide-react';
 import type { CalendarEvent, CalendarType } from '../types';
+import { BusinessSwitcher } from '../components/ui/BusinessSwitcher';
 import './CalendarPage.css';
 
 // Default calendar type colors for fallback
@@ -203,6 +204,7 @@ export default function CalendarPage() {
 
   return (
     <div className="calendar-page">
+      <BusinessSwitcher />
       {/* Page Header */}
       <div className="calendar-page__header">
         <h1 className="calendar-page__title">Calendar</h1>

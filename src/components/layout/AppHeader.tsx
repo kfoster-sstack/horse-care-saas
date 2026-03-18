@@ -1,5 +1,6 @@
+import { useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Bell, Search, ChevronDown } from 'lucide-react';
+import { Bell, Search, ChevronDown, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from '../../i18n';
 import { useAppStore } from '../../store';
@@ -23,8 +24,12 @@ export function AppHeader({ isMobile }: AppHeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { profile } = useAuth();
+  const { profile, signOut } = useAuth();
   const { getUnreadMessageCount } = useAppStore();
+
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const unreadCount = getUnreadMessageCount();
 
@@ -36,23 +41,31 @@ export function AppHeader({ isMobile }: AppHeaderProps) {
     .toUpperCase()
     .slice(0, 2);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    }
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showDropdown]);
+
   // Determine page title from current route
   const getPageTitle = (): string => {
-    // Exact match first
     if (routeTitles[location.pathname]) {
       return t(routeTitles[location.pathname]);
     }
-
-    // Prefix match for nested routes (e.g. /horses/123)
     const matchingRoute = Object.keys(routeTitles)
       .filter((route) => route !== '/')
       .sort((a, b) => b.length - a.length)
       .find((route) => location.pathname.startsWith(route));
-
     if (matchingRoute) {
       return t(routeTitles[matchingRoute]);
     }
-
     return t('nav.home');
   };
 
@@ -60,8 +73,10 @@ export function AppHeader({ isMobile }: AppHeaderProps) {
     navigate('/reminders');
   };
 
-  const handleUserClick = () => {
-    navigate('/settings');
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    await signOut();
+    navigate('/login', { replace: true });
   };
 
   if (isMobile) {
@@ -119,16 +134,38 @@ export function AppHeader({ isMobile }: AppHeaderProps) {
           )}
         </button>
 
-        {/* User dropdown trigger */}
-        <button
-          className="app-header__user-btn"
-          onClick={handleUserClick}
-          aria-label="User menu"
-        >
-          <div className="app-header__avatar">{initials}</div>
-          <span className="app-header__user-name">{displayName}</span>
-          <ChevronDown size={16} />
-        </button>
+        {/* User dropdown */}
+        <div className="app-header__user-wrapper" ref={dropdownRef}>
+          <button
+            className="app-header__user-btn"
+            onClick={() => setShowDropdown(!showDropdown)}
+            aria-label="User menu"
+          >
+            <div className="app-header__avatar">{initials}</div>
+            <span className="app-header__user-name">{displayName}</span>
+            <ChevronDown size={16} />
+          </button>
+
+          {showDropdown && (
+            <div className="app-header__dropdown">
+              <button
+                className="app-header__dropdown-item"
+                onClick={() => { navigate('/settings'); setShowDropdown(false); }}
+              >
+                <Settings size={16} />
+                Settings
+              </button>
+              <button
+                className="app-header__dropdown-item app-header__dropdown-item--danger"
+                onClick={handleSignOut}
+                disabled={signingOut}
+              >
+                <LogOut size={16} />
+                {signingOut ? 'Signing out...' : 'Sign Out'}
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

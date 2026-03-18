@@ -13,6 +13,7 @@ import { useAppStore } from '../store';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../i18n';
 import type { DirectMessage } from '../types';
+import { BusinessSwitcher } from '../components/ui/BusinessSwitcher';
 import './MessagesPage.css';
 
 type Tab = 'inbox' | 'sent';
@@ -401,6 +402,7 @@ export function MessagesPage() {
 
   return (
     <div className="messages-page">
+      <BusinessSwitcher />
       {/* Left Panel: Tab bar + List */}
       <div className={`messages-left ${showRightPanel ? 'messages-left--hidden-mobile' : ''}`}>
         <div className="messages-left__header">

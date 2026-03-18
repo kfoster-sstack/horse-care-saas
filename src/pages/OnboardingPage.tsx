@@ -58,10 +58,8 @@ const MODE_OPTIONS: {
 ];
 
 function getStepsForMode(mode: UserMode | null): OnboardingStep[] {
-  if (mode === 'standard') {
-    return ['welcome', 'mode', 'profile', 'business', 'complete'];
-  }
-  return ['welcome', 'mode', 'profile', 'complete'];
+  // All modes get the business step — owners create, others join with a code
+  return ['welcome', 'mode', 'profile', 'business', 'complete'];
 }
 
 export function OnboardingPage() {
@@ -106,8 +104,8 @@ export function OnboardingPage() {
       case 'profile':
         return profileName.trim().length > 0;
       case 'business':
-        // Can skip business, or must fill in one of the forms
-        return true;
+        // Owners can skip; non-owners must join a business
+        return selectedMode === 'standard' ? true : false;
       case 'complete':
         return true;
       default:
@@ -328,12 +326,17 @@ export function OnboardingPage() {
           </div>
         );
 
-      case 'business':
+      case 'business': {
+        const isOwnerMode = selectedMode === 'standard';
         return (
           <div className="onboarding-step">
-            <h2 className="onboarding-step__title">Set up your business</h2>
+            <h2 className="onboarding-step__title">
+              {isOwnerMode ? 'Set up your business' : 'Join a business'}
+            </h2>
             <p className="onboarding-step__description">
-              Create a new business or join an existing one with a business code.
+              {isOwnerMode
+                ? 'Create a new business or join an existing one with a business code.'
+                : 'Enter the business code provided by your barn owner or manager to get started.'}
             </p>
 
             {businessError && (
@@ -342,16 +345,18 @@ export function OnboardingPage() {
 
             {!businessAction ? (
               <div className="onboarding-business-options">
-                <button
-                  className="onboarding-business-option"
-                  onClick={() => setBusinessAction('create')}
-                >
-                  <div className="onboarding-business-option__icon">
-                    <Plus size={24} />
-                  </div>
-                  <h3>Create New Business</h3>
-                  <p>Start a new barn or business and invite your team.</p>
-                </button>
+                {isOwnerMode && (
+                  <button
+                    className="onboarding-business-option"
+                    onClick={() => setBusinessAction('create')}
+                  >
+                    <div className="onboarding-business-option__icon">
+                      <Plus size={24} />
+                    </div>
+                    <h3>Create New Business</h3>
+                    <p>Start a new barn or business and invite your team.</p>
+                  </button>
+                )}
 
                 <button
                   className="onboarding-business-option"
@@ -364,13 +369,15 @@ export function OnboardingPage() {
                   <p>Enter a business code shared by your manager or owner.</p>
                 </button>
 
-                <button
-                  className="onboarding-business-skip"
-                  onClick={handleSkipBusiness}
-                >
-                  <SkipForward size={16} />
-                  Skip for now
-                </button>
+                {isOwnerMode && (
+                  <button
+                    className="onboarding-business-skip"
+                    onClick={handleSkipBusiness}
+                  >
+                    <SkipForward size={16} />
+                    Skip for now
+                  </button>
+                )}
               </div>
             ) : businessAction === 'create' ? (
               <div className="onboarding-form">
@@ -445,6 +452,7 @@ export function OnboardingPage() {
             )}
           </div>
         );
+      }
 
       case 'complete':
         return (

@@ -20,6 +20,7 @@ import {
 import { useAppStore } from '../store';
 import { useTranslation } from '../i18n';
 import type { Reminder, ReminderType, RepeatInterval } from '../types';
+import { BusinessSwitcher } from '../components/ui/BusinessSwitcher';
 import './RemindersPage.css';
 
 const REPEAT_OPTIONS: { value: RepeatInterval; label: string }[] = [
@@ -282,6 +283,7 @@ export function RemindersPage() {
 
   return (
     <div className="reminders-page">
+      <BusinessSwitcher />
       {/* Header */}
       <div className="reminders-header">
         <div className="reminders-header__left">
