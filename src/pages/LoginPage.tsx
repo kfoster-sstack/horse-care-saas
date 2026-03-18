@@ -56,7 +56,10 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await signIn(email.trim(), password);
+      const { error: signInError } = await signIn(email.trim(), password);
+      if (signInError) {
+        setError(signInError.message || 'Failed to sign in. Please check your credentials.');
+      }
     } catch (err: any) {
       setError(err?.message || 'Failed to sign in. Please check your credentials.');
     } finally {

@@ -77,15 +77,19 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      await signUp(email.trim(), password, name.trim());
-      setSuccess(
-        'Account created! Please check your email for a verification link to complete your registration.'
-      );
-      setName('');
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
-      setFieldErrors({});
+      const { error: signUpError } = await signUp(email.trim(), password, name.trim());
+      if (signUpError) {
+        setError(signUpError.message || 'Failed to create account. Please try again.');
+      } else {
+        setSuccess(
+          'Account created! Please check your email for a verification link to complete your registration.'
+        );
+        setName('');
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+        setFieldErrors({});
+      }
     } catch (err: any) {
       setError(err?.message || 'Failed to create account. Please try again.');
     } finally {
