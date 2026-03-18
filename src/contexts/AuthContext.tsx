@@ -112,30 +112,39 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return { business, membership };
   };
 
+  // Helper to load profile/business with a timeout so DB queries don't block forever
+  const loadUserData = async (session: Session) => {
+    const timeoutMs = 10000;
+    const withTimeout = <T,>(promise: Promise<T>, fallback: T): Promise<T> =>
+      Promise.race([
+        promise,
+        new Promise<T>((resolve) => setTimeout(() => resolve(fallback), timeoutMs)),
+      ]);
+
+    const profile = await withTimeout(fetchProfile(session.user.id), null);
+    const { business, membership } = await withTimeout(
+      fetchActiveBusiness(session.user.id),
+      { business: null, membership: null }
+    );
+
+    return { profile, business, membership };
+  };
+
   // Initialize auth state
   useEffect(() => {
-    let didTimeout = false;
-
-    // Safety timeout — if Supabase is unreachable, stop the spinner
-    const timeout = setTimeout(() => {
-      didTimeout = true;
-      setState((prev) => {
-        if (!prev.initialized) {
-          console.warn('Auth initialization timed out — Supabase may be unreachable.');
-          return { ...prev, loading: false, initialized: true };
-        }
-        return prev;
-      });
-    }, 8000);
-
     // Get initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (didTimeout) return;
-      clearTimeout(timeout);
-
       if (session?.user) {
-        const profile = await fetchProfile(session.user.id);
-        const { business, membership } = await fetchActiveBusiness(session.user.id);
+        // Set user immediately so the app can proceed, then load profile data
+        setState((prev) => ({
+          ...prev,
+          session,
+          user: session.user,
+          loading: true,
+          initialized: true,
+        }));
+
+        const { profile, business, membership } = await loadUserData(session);
 
         setState({
           session,
@@ -153,12 +162,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           initialized: true,
         }));
       }
-    }).catch(() => {
-      if (!didTimeout) {
-        clearTimeout(timeout);
-        console.warn('Auth initialization failed — could not reach Supabase.');
-        setState((prev) => ({ ...prev, loading: false, initialized: true }));
-      }
+    }).catch((err) => {
+      console.warn('Auth initialization failed:', err);
+      setState((prev) => ({ ...prev, loading: false, initialized: true }));
     });
 
     // Listen for auth changes
@@ -167,8 +173,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.log('Auth event:', event);
 
         if (session?.user) {
-          const profile = await fetchProfile(session.user.id);
-          const { business, membership } = await fetchActiveBusiness(session.user.id);
+          // Set user immediately so login redirects right away
+          setState((prev) => ({
+            ...prev,
+            session,
+            user: session.user,
+            loading: true,
+            initialized: true,
+          }));
+
+          const { profile, business, membership } = await loadUserData(session);
 
           setState({
             session,
@@ -180,12 +194,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
             initialized: true,
           });
 
-          // Update last login
+          // Update last login (fire and forget)
           if (event === 'SIGNED_IN') {
-            await supabase
+            supabase
               .from('user_profiles')
               .update({ last_login: new Date().toISOString() })
-              .eq('id', session.user.id);
+              .eq('id', session.user.id)
+              .then(() => {}, () => {});
           }
         } else {
           setState({
@@ -202,7 +217,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     );
 
     return () => {
-      clearTimeout(timeout);
       subscription.unsubscribe();
     };
   }, []);
