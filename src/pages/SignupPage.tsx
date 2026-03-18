@@ -1,11 +1,12 @@
 import { useState, FormEvent } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { User as UserIcon, Mail, Lock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import './SignupPage.css';
 
 export default function SignupPage() {
   const { user, signUp, initialized, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -81,14 +82,10 @@ export default function SignupPage() {
       if (signUpError) {
         setError(signUpError.message || 'Failed to create account. Please try again.');
       } else {
-        setSuccess(
-          'Account created! Please check your email for a verification link to complete your registration.'
-        );
-        setName('');
-        setEmail('');
-        setPassword('');
-        setConfirmPassword('');
-        setFieldErrors({});
+        // Redirect to login with success message via URL state
+        navigate('/login', {
+          state: { message: 'Account created! Please check your email for a verification link, then sign in.' },
+        });
       }
     } catch (err: any) {
       setError(err?.message || 'Failed to create account. Please try again.');

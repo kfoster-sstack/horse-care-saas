@@ -1,18 +1,20 @@
 import { useState, FormEvent } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { Mail, Lock, Wand2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import './LoginPage.css';
 
 export default function LoginPage() {
   const { user, signIn, signInWithMagicLink, initialized, loading: authLoading } = useAuth();
+  const location = useLocation();
+  const signupMessage = (location.state as any)?.message || '';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [magicLinkLoading, setMagicLinkLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [success, setSuccess] = useState(signupMessage);
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
 
   if (!initialized || authLoading) {
