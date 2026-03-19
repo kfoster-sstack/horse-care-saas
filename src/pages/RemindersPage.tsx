@@ -21,6 +21,7 @@ import { useAppStore } from '../store';
 import { useTranslation } from '../i18n';
 import type { Reminder, ReminderType, RepeatInterval } from '../types';
 import { BusinessSwitcher } from '../components/ui/BusinessSwitcher';
+import { MultiSelect } from '../components/ui/MultiSelect';
 import './RemindersPage.css';
 
 const REPEAT_OPTIONS: { value: RepeatInterval; label: string }[] = [
@@ -119,12 +120,17 @@ export function RemindersPage() {
   // New reminder form state
   const [newTitle, setNewTitle] = useState('');
   const [newType, setNewType] = useState<ReminderType>('other');
-  const [newHorseId, setNewHorseId] = useState('');
+  const [newHorseIds, setNewHorseIds] = useState<string[]>([]);
+  const [newStaffIds, setNewStaffIds] = useState<string[]>([]);
   const [newDueDate, setNewDueDate] = useState('');
   const [newPriority, setNewPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [newRepeat, setNewRepeat] = useState<RepeatInterval>('never');
   const [newNotes, setNewNotes] = useState('');
   const [newAssignedTo, setNewAssignedTo] = useState('');
+  const [newCategory, setNewCategory] = useState('');
+  const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
   const [formError, setFormError] = useState('');
 
   const getHorseName = (horseId: string | undefined): string => {
@@ -213,32 +219,39 @@ export function RemindersPage() {
       return;
     }
 
-    const reminder: Reminder = {
-      id: crypto.randomUUID(),
-      horseId: newHorseId || '',
-      title: newTitle.trim(),
-      type: newType,
-      dueDate: newDueDate,
-      priority: newPriority,
-      repeat: newRepeat,
-      leadReminder: '1day',
-      notes: newNotes.trim() || undefined,
-      completed: false,
-      assignedTo: newAssignedTo || undefined,
-      createdAt: new Date().toISOString(),
-    };
+    // Create a reminder for each selected horse (or one general if none selected)
+    const horseList = newHorseIds.length > 0 ? newHorseIds : [''];
+    const categoryTag = newCategory ? `[${newCategory}] ` : '';
 
-    addReminder(reminder);
+    horseList.forEach((hId) => {
+      const reminder: Reminder = {
+        id: crypto.randomUUID(),
+        horseId: hId,
+        title: `${categoryTag}${newTitle.trim()}`,
+        type: newType,
+        dueDate: newDueDate,
+        priority: newPriority,
+        repeat: newRepeat,
+        leadReminder: '1day',
+        notes: newNotes.trim() || undefined,
+        completed: false,
+        assignedTo: newAssignedTo || (newStaffIds.length > 0 ? newStaffIds.join(',') : undefined),
+        createdAt: new Date().toISOString(),
+      };
+      addReminder(reminder);
+    });
 
     // Reset form
     setNewTitle('');
     setNewType('other');
-    setNewHorseId('');
+    setNewHorseIds([]);
+    setNewStaffIds([]);
     setNewDueDate('');
     setNewPriority('medium');
     setNewRepeat('never');
     setNewNotes('');
     setNewAssignedTo('');
+    setNewCategory('');
     setShowAddForm(false);
   }
 
@@ -555,21 +568,81 @@ export function RemindersPage() {
                 </div>
 
                 <div className="reminders-form__field">
-                  <label htmlFor="reminder-horse">Horse</label>
-                  <select
-                    id="reminder-horse"
-                    className="reminders-form__select"
-                    value={newHorseId}
-                    onChange={(e) => setNewHorseId(e.target.value)}
-                  >
-                    <option value="">General (no horse)</option>
-                    {horses.map((horse) => (
-                      <option key={horse.id} value={horse.id}>
-                        {horse.name}
-                      </option>
-                    ))}
-                  </select>
+                  <label>Category</label>
+                  <div style={{ display: 'flex', gap: 4 }}>
+                    <select
+                      className="reminders-form__select"
+                      value={newCategory}
+                      onChange={(e) => {
+                        if (e.target.value === '__add__') {
+                          setShowAddCategory(true);
+                        } else {
+                          setNewCategory(e.target.value);
+                        }
+                      }}
+                      style={{ flex: 1 }}
+                    >
+                      <option value="">No category</option>
+                      <option value="All">All</option>
+                      {customCategories.map((cat) => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                      <option value="__add__">+ Add Category...</option>
+                    </select>
+                  </div>
+                  {showAddCategory && (
+                    <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
+                      <input
+                        type="text"
+                        className="reminders-form__input"
+                        placeholder="New category name"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        style={{ flex: 1 }}
+                      />
+                      <button
+                        type="button"
+                        className="reminders-modal__submit"
+                        style={{ padding: '4px 12px', fontSize: '0.8rem' }}
+                        onClick={() => {
+                          if (newCategoryName.trim()) {
+                            setCustomCategories([...customCategories, newCategoryName.trim()]);
+                            setNewCategory(newCategoryName.trim());
+                            setNewCategoryName('');
+                            setShowAddCategory(false);
+                          }
+                        }}
+                      >
+                        Add
+                      </button>
+                    </div>
+                  )}
                 </div>
+              </div>
+
+              <div className="reminders-form__field">
+                <MultiSelect
+                  label="Horses"
+                  placeholder="Select horses (optional)"
+                  options={horses.map((h) => ({ value: h.id, label: h.name }))}
+                  selected={newHorseIds}
+                  onChange={setNewHorseIds}
+                />
+              </div>
+
+              <div className="reminders-form__field">
+                <MultiSelect
+                  label="Staff Members"
+                  placeholder="Select staff (optional)"
+                  options={[
+                    { value: 'all_staff', label: 'All Staff', group: 'Groups' },
+                    ...teamMembers
+                      .filter((m) => m.status === 'active')
+                      .map((m) => ({ value: m.id, label: m.name, group: 'Individual' })),
+                  ]}
+                  selected={newStaffIds}
+                  onChange={setNewStaffIds}
+                />
               </div>
 
               <div className="reminders-form__row">
@@ -611,27 +684,6 @@ export function RemindersPage() {
                     {REPEAT_OPTIONS.map((opt) => (
                       <option key={opt.value} value={opt.value}>{opt.label}</option>
                     ))}
-                  </select>
-                </div>
-
-                <div className="reminders-form__field">
-                  <label htmlFor="reminder-assign">Assign To</label>
-                  <select
-                    id="reminder-assign"
-                    className="reminders-form__select"
-                    value={newAssignedTo}
-                    onChange={(e) => setNewAssignedTo(e.target.value)}
-                  >
-                    {ROLE_ASSIGNMENTS.map((r) => (
-                      <option key={r.value} value={r.value}>{r.label}</option>
-                    ))}
-                    {teamMembers
-                      .filter((m) => m.status === 'active')
-                      .map((member) => (
-                        <option key={member.id} value={member.id}>
-                          {member.name}
-                        </option>
-                      ))}
                   </select>
                 </div>
               </div>

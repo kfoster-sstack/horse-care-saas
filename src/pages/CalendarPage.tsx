@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import type { CalendarEvent, CalendarType } from '../types';
 import { BusinessSwitcher } from '../components/ui/BusinessSwitcher';
+import { MultiSelect } from '../components/ui/MultiSelect';
 import './CalendarPage.css';
 
 // Default calendar type colors for fallback
@@ -451,15 +452,19 @@ function AddEventModal({
   onClose,
   onAdd,
 }: AddEventModalProps) {
+  const teamMembers = useAppStore((s) => s.teamMembers);
+
   const [title, setTitle] = useState('');
   const [type, setType] = useState<CalendarEvent['type']>('other');
+  const [customType, setCustomType] = useState('');
   const [date, setDate] = useState(
     selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')
   );
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
   const [allDay, setAllDay] = useState(false);
-  const [horseId, setHorseId] = useState('');
+  const [selectedHorseIds, setSelectedHorseIds] = useState<string[]>([]);
+  const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]);
   const [location, setLocation] = useState('');
   const [notes, setNotes] = useState('');
   const [calendarId, setCalendarId] = useState('');
@@ -476,26 +481,44 @@ function AddEventModal({
     { value: 'other', label: 'Other' },
   ];
 
+  const horseOptions = horses.map((h) => ({ value: h.id, label: h.name }));
+  const staffOptions = teamMembers
+    .filter((m) => m.status === 'active')
+    .map((m) => ({ value: m.id, label: `${m.name} (${m.role})` }));
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
     setSubmitting(true);
 
-    const newEvent: CalendarEvent = {
-      id: crypto.randomUUID(),
-      horseId: horseId || '',
-      title: title.trim(),
-      type,
-      date,
-      startTime: allDay ? undefined : startTime || undefined,
-      endTime: allDay ? undefined : endTime || undefined,
-      allDay,
-      location: location.trim() || undefined,
-      notes: notes.trim() || undefined,
-      calendarId: calendarId || undefined,
-    };
+    const eventTitle = type === 'other' && customType.trim()
+      ? `${customType.trim()}: ${title.trim()}`
+      : title.trim();
 
-    onAdd(newEvent);
+    const staffNote = selectedStaffIds.length > 0
+      ? `Staff: ${selectedStaffIds.map((id) => teamMembers.find((m) => m.id === id)?.name || id).join(', ')}`
+      : '';
+    const combinedNotes = [notes.trim(), staffNote].filter(Boolean).join('\n');
+
+    // Create one event per horse, or one general event
+    const horseList = selectedHorseIds.length > 0 ? selectedHorseIds : [''];
+
+    horseList.forEach((hId, i) => {
+      const newEvent: CalendarEvent = {
+        id: crypto.randomUUID(),
+        horseId: hId,
+        title: eventTitle,
+        type,
+        date,
+        startTime: allDay ? undefined : startTime || undefined,
+        endTime: allDay ? undefined : endTime || undefined,
+        allDay,
+        location: location.trim() || undefined,
+        notes: combinedNotes || undefined,
+        calendarId: calendarId || undefined,
+      };
+      onAdd(newEvent);
+    });
   };
 
   return (
@@ -546,25 +569,44 @@ function AddEventModal({
               </select>
             </div>
 
-            <div className="modal__field">
-              <label className="modal__label" htmlFor="event-horse">
-                Horse
-              </label>
-              <select
-                id="event-horse"
-                className="modal__select"
-                value={horseId}
-                onChange={(e) => setHorseId(e.target.value)}
-              >
-                <option value="">None (General)</option>
-                {horses.map((h) => (
-                  <option key={h.id} value={h.id}>
-                    {h.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {type === 'other' && (
+              <div className="modal__field">
+                <label className="modal__label" htmlFor="event-custom-type">
+                  Specify Type
+                </label>
+                <input
+                  id="event-custom-type"
+                  type="text"
+                  className="modal__input"
+                  value={customType}
+                  onChange={(e) => setCustomType(e.target.value)}
+                  placeholder="e.g., Training, Clinic, Meeting"
+                />
+              </div>
+            )}
           </div>
+
+          <div className="modal__field">
+            <MultiSelect
+              label="Horses"
+              placeholder="Select horses (optional, can select multiple)"
+              options={horseOptions}
+              selected={selectedHorseIds}
+              onChange={setSelectedHorseIds}
+            />
+          </div>
+
+          {staffOptions.length > 0 && (
+            <div className="modal__field">
+              <MultiSelect
+                label="Staff / Trainers"
+                placeholder="Select people (optional, can select multiple)"
+                options={staffOptions}
+                selected={selectedStaffIds}
+                onChange={setSelectedStaffIds}
+              />
+            </div>
+          )}
 
           <div className="modal__field">
             <label className="modal__label" htmlFor="event-date">

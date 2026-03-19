@@ -1,0 +1,139 @@
+.multi-select {
+  position: relative;
+}
+
+.multi-select__label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 4px;
+}
+
+.multi-select__trigger {
+  width: 100%;
+  min-height: 38px;
+  padding: 4px 32px 4px 8px;
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  position: relative;
+}
+
+.multi-select__trigger:hover {
+  border-color: #9ca3af;
+}
+
+.multi-select__placeholder {
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.multi-select__arrow {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+}
+
+.multi-select__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.multi-select__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  color: #374151;
+}
+
+.multi-select__chip-remove {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  margin-left: 2px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9ca3af;
+}
+
+.multi-select__chip-remove:hover {
+  color: #c62828;
+}
+
+.multi-select__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 50;
+}
+
+.multi-select__group-label {
+  padding: 6px 12px 2px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #9ca3af;
+}
+
+.multi-select__option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  color: #374151;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.multi-select__option:hover {
+  background: #f3f4f6;
+}
+
+.multi-select__option--selected {
+  background: #fff5f5;
+  color: #8B0000;
+}
+
+.multi-select__checkbox {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.multi-select__option--selected .multi-select__checkbox {
+  background: #8B0000;
+  border-color: #8B0000;
+  color: #fff;
+}
